@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <title>File Gallery</title>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">File Manager</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <button type="button" class="nav-link" id="upload_button">Upload Multiple Files</button>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="download.html">Download Files</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.html">Logout</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-5">
+        <h2>File Gallery</h2>
+        <div id="file-container" class="row">
+            <!-- Files will be dynamically loaded here -->
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+       // Your Cloudinary details
+const cloudName = 'dlbzf1uua'; // Replace with your Cloudinary Cloud Name
+const apiUrl = `https://api.cloudinary.com/v1_1/${cloudName}/resources/image`;
+
+// Your Cloudinary API Key and API Secret (use environment variables in production for security)
+const apiKey = '181869249849868';  // Replace with your Cloudinary API Key
+const apiSecret = '49IXALwuA7owTsVQIfSYXUYkjWs';  // Replace with your Cloudinary API Secret
+
+async function fetchFiles() {
+    try {
+        // Basic Authentication for Cloudinary API
+        const auth = 'Basic ' + btoa(`${apiKey}:${apiSecret}`);
+
+        // Fetch files from Cloudinary's resources API endpoint
+        const response = await fetch(apiUrl, {
+            method: 'GET',
+            headers: {
+                'Authorization': auth,
+                'Content-Type': 'application/json',
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to fetch files');
+        }
+
+        // Get the file data
+        const data = await response.json();
+        const files = data.resources;  // Array of files
+
+        // Get the container element to display files
+        const fileContainer = document.getElementById('file-container');
+
+        files.forEach(file => {
+            // Create the HTML for each file
+            const fileElement = document.createElement('div');
+            fileElement.classList.add('col-12', 'col-sm-6', 'col-md-4', 'col-lg-3', 'mb-4');
+            
+            const isImage = file.format === 'jpg' || file.format === 'png' || file.format === 'jpeg';
+            const isPDF = file.format === 'pdf';
+            let content = '';
+
+            if (isImage) {
+                content = `<img src="${file.secure_url}" class="img-fluid" alt="Image File">`;
+            } else if (isPDF) {
+                content = `<embed src="${file.secure_url}" width="100%" height="200" type="application/pdf">`;
+            }
+
+            fileElement.innerHTML = `
+                <div class="card">
+                    <div class="card-body">
+                        ${content}
+                        <a href="${file.secure_url}" download class="btn btn-primary mt-2">Download</a>
+                    </div>
+                </div>
+            `;
+            fileContainer.appendChild(fileElement);
+        });
+    } catch (error) {
+        console.error('Error loading files:', error);
+    }
+}
+
+// Call the function to load the files when the page is ready
+fetchFiles();
+
+    </script>
+</body>
+</html>
